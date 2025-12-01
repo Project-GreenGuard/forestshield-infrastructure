@@ -15,7 +15,7 @@ This repository contains Terraform configurations for:
 ## Prerequisites
 
 - Terraform >= 1.0
-- AWS CLI configured with hackathon profile
+- AWS CLI configured with GreenGuard profile
 - AWS credentials with permissions for:
   - IoT Core
   - Lambda
@@ -30,7 +30,7 @@ This repository contains Terraform configurations for:
 **Option A: Using AWS CLI Profile (Recommended)**
 
 ```bash
-aws configure --profile hackathon
+aws configure --profile GreenGuard
 # Enter Access Key ID
 # Enter Secret Access Key
 # Enter region: us-east-1
@@ -168,7 +168,7 @@ terraform destroy
 
 - Verify AWS credentials
 - Check IAM permissions
-- Ensure hackathon profile has necessary permissions
+- Ensure GreenGuard profile has necessary permissions
 
 ### Terraform State Issues
 

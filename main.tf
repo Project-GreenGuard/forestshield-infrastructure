@@ -24,7 +24,7 @@ provider "aws" {
   region = var.aws_region
 
   # Use default credentials from AWS CLI profile
-  # Make sure to configure: aws configure --profile hackathon
+  # Make sure to configure: aws configure --profile GreenGuard
   default_tags {
     tags = {
       Project     = "GreenGuard"

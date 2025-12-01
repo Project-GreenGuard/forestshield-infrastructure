@@ -1,0 +1,33 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+
+# Lambda deployment packages
+*.zip
+lambda-processing.zip
+api-gateway-lambda.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AWS
+*.pem
+*.key
+*.crt
+*.cert
+
+# Logs
+*.log
+

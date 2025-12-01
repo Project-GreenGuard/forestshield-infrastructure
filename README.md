@@ -5,6 +5,7 @@ Terraform infrastructure as code for AWS resources.
 ## Overview
 
 This repository contains Terraform configurations for:
+
 - AWS IoT Core (device management, MQTT)
 - AWS Lambda functions (sensor processing, API handler)
 - AWS DynamoDB (data storage)
@@ -24,11 +25,37 @@ This repository contains Terraform configurations for:
 
 ## Quick Start
 
-### 1. Configure AWS Profile
+### 1. Configure AWS Credentials
+
+**Option A: Using AWS CLI Profile (Recommended)**
 
 ```bash
 aws configure --profile hackathon
+# Enter Access Key ID
+# Enter Secret Access Key
+# Enter region: us-east-1
+# Enter output format: json
 ```
+
+**Option B: Using Environment Variables**
+
+Copy the environment template:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your AWS credentials (provided by team lead):
+
+```bash
+# Load environment variables
+source .env
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export AWS_REGION
+```
+
+**Important:** Never commit `.env` files with real credentials. They are in `.gitignore`.
 
 ### 2. Package Lambda Functions
 
@@ -66,6 +93,7 @@ Type `yes` when prompted.
 ### 6. Get Outputs
 
 After deployment, note these outputs:
+
 - `iot_endpoint_address` - For ESP32 configuration
 - `api_endpoint` - For frontend configuration
 - `dynamodb_table_name` - Table name
@@ -73,20 +101,24 @@ After deployment, note these outputs:
 ## Infrastructure Components
 
 ### IoT Core (`iot-core.tf`)
+
 - IoT Thing for ESP32 devices
 - IoT Policy for device permissions
 - IoT Rule to trigger Lambda on `wildfire/sensors/+` topic
 
 ### Lambda (`lambda.tf`)
+
 - `wildfire-process-sensor-data` - Processes IoT data, fetches NASA FIRMS, calculates risk
 - `wildfire-api-handler` - Handles API Gateway requests
 
 ### DynamoDB (`dynamodb.tf`)
+
 - `WildfireSensorData` table
 - On-demand billing (cost-effective)
 - TTL enabled (30 days)
 
 ### API Gateway (`apigateway.tf`)
+
 - REST API with three endpoints:
   - `GET /api/sensors`
   - `GET /api/sensor/{id}`
@@ -95,6 +127,7 @@ After deployment, note these outputs:
 - CORS enabled
 
 ### IAM (`iam.tf`)
+
 - Lambda execution role
 - DynamoDB access permissions
 - Minimal permissions (security best practice)
@@ -102,11 +135,13 @@ After deployment, note these outputs:
 ## Variables
 
 Edit `main.tf` to change:
+
 - `aws_region` - AWS region (default: us-east-1)
 
 ## Cost Considerations
 
 Designed to stay within $100 AWS credits:
+
 - DynamoDB: On-demand pricing (pay per request)
 - Lambda: Free tier (1M requests/month)
 - IoT Core: First 250K messages/month free
@@ -125,15 +160,18 @@ terraform destroy
 ## Troubleshooting
 
 ### Lambda Deployment Issues
+
 - Ensure zip files are in this directory before `terraform apply`
 - Check Lambda function code size limits (50MB zipped)
 
 ### Permission Errors
+
 - Verify AWS credentials
 - Check IAM permissions
 - Ensure hackathon profile has necessary permissions
 
 ### Terraform State Issues
+
 ```bash
 terraform refresh
 ```

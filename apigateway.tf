@@ -24,10 +24,17 @@ resource "aws_api_gateway_resource" "sensors" {
   path_part   = "sensors"
 }
 
-# Create /api/sensors/{id}
+# Create /api/sensor (singular)
 resource "aws_api_gateway_resource" "sensor" {
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
-  parent_id   = aws_api_gateway_resource.sensors.id
+  parent_id   = aws_api_gateway_resource.api.id
+  path_part   = "sensor"
+}
+
+# Create /api/sensor/{id}
+resource "aws_api_gateway_resource" "sensor_id" {
+  rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
+  parent_id   = aws_api_gateway_resource.sensor.id
   path_part   = "{id}"
 }
 
@@ -59,14 +66,14 @@ resource "aws_api_gateway_integration" "get_sensors" {
 # GET /api/sensor/{id}
 resource "aws_api_gateway_method" "get_sensor" {
   rest_api_id   = aws_api_gateway_rest_api.wildfire_api.id
-  resource_id   = aws_api_gateway_resource.sensor.id
+  resource_id   = aws_api_gateway_resource.sensor_id.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "get_sensor" {
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
-  resource_id = aws_api_gateway_resource.sensor.id
+  resource_id = aws_api_gateway_resource.sensor_id.id
   http_method = aws_api_gateway_method.get_sensor.http_method
 
   integration_http_method = "POST"

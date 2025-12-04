@@ -10,21 +10,31 @@ resource "aws_api_gateway_rest_api" "wildfire_api" {
 }
 
 # API Gateway resources
-resource "aws_api_gateway_resource" "sensors" {
+# Create /api resource
+resource "aws_api_gateway_resource" "api" {
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
   parent_id   = aws_api_gateway_rest_api.wildfire_api.root_resource_id
+  path_part   = "api"
+}
+
+# Create /api/sensors
+resource "aws_api_gateway_resource" "sensors" {
+  rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
+  parent_id   = aws_api_gateway_resource.api.id
   path_part   = "sensors"
 }
 
+# Create /api/sensors/{id}
 resource "aws_api_gateway_resource" "sensor" {
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
   parent_id   = aws_api_gateway_resource.sensors.id
   path_part   = "{id}"
 }
 
+# Create /api/risk-map
 resource "aws_api_gateway_resource" "risk_map" {
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
-  parent_id   = aws_api_gateway_rest_api.wildfire_api.root_resource_id
+  parent_id   = aws_api_gateway_resource.api.id
   path_part   = "risk-map"
 }
 
@@ -100,5 +110,6 @@ resource "aws_api_gateway_deployment" "wildfire_api" {
 # Output API endpoint
 output "api_endpoint" {
   value = "${aws_api_gateway_deployment.wildfire_api.invoke_url}/api"
+  description = "Base API endpoint URL (includes /api prefix)"
 }
 

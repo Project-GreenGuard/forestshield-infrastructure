@@ -111,12 +111,18 @@ resource "aws_api_gateway_deployment" "wildfire_api" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
-  stage_name  = var.environment == "production" ? "prod" : var.environment
+}
+
+# Stage (explicit stage resource to avoid deprecation warning)
+resource "aws_api_gateway_stage" "wildfire_api" {
+  deployment_id = aws_api_gateway_deployment.wildfire_api.id
+  rest_api_id   = aws_api_gateway_rest_api.wildfire_api.id
+  stage_name    = var.environment == "production" ? "prod" : var.environment
 }
 
 # Output API endpoint
 output "api_endpoint" {
-  value       = "${aws_api_gateway_deployment.wildfire_api.invoke_url}/api"
+  value       = "${aws_api_gateway_stage.wildfire_api.invoke_url}/api"
   description = "Base API endpoint URL (includes /api prefix)"
 }
 

@@ -10,7 +10,7 @@ resource "aws_lambda_function" "process_sensor_data" {
   timeout       = 30
   memory_size   = 256
 
-  source_code_hash = filebase64sha256("${path.module}/lambda-processing.zip")
+  source_code_hash = fileexists("${path.module}/lambda-processing.zip") ? filebase64sha256("${path.module}/lambda-processing.zip") : null
 
   environment {
     variables = {
@@ -29,7 +29,7 @@ resource "aws_lambda_function" "api_handler" {
   timeout       = 30
   memory_size   = 256
 
-  source_code_hash = filebase64sha256("${path.module}/api-gateway-lambda.zip")
+  source_code_hash = fileexists("${path.module}/api-gateway-lambda.zip") ? filebase64sha256("${path.module}/api-gateway-lambda.zip") : null
 
   environment {
     variables = {

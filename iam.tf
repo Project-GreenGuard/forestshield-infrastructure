@@ -2,7 +2,7 @@
 
 # IAM role for Lambda functions
 resource "aws_iam_role" "lambda_role" {
-  name = "wildfire-lambda-role"
+  name = "wildfire-lambda-role${local.env_suffix}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -26,7 +26,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
 
 # Policy for DynamoDB access
 resource "aws_iam_role_policy" "lambda_dynamodb" {
-  name = "lambda-dynamodb-policy"
+  name = "lambda-dynamodb-policy${local.env_suffix}"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({

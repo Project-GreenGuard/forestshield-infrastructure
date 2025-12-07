@@ -45,6 +45,11 @@ resource "aws_lambda_permission" "iot_invoke" {
   function_name = aws_lambda_function.process_sensor_data.function_name
   principal     = "iot.amazonaws.com"
   source_arn    = aws_iot_topic_rule.sensor_data_rule.arn
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes        = [source_arn]
+  }
 }
 
 # Permission for API Gateway to invoke API handler Lambda
@@ -54,5 +59,10 @@ resource "aws_lambda_permission" "api_gateway_invoke" {
   function_name = aws_lambda_function.api_handler.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.wildfire_api.execution_arn}/*/*"
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes        = [source_arn]
+  }
 }
 

@@ -55,25 +55,15 @@ jobs:
           fi
           echo "Deploying to: $(cat $GITHUB_OUTPUT | grep environment | cut -d'=' -f2)"
 
-      - name: Clean State for Staging (if needed)
-        if: steps.env.outputs.environment == 'staging'
-        continue-on-error: true
+      - name: Select Terraform Workspace
         run: |
-          echo "🧹 Cleaning production resources from state for staging deployment..."
-          # Remove production resources from state if they exist
-          terraform state rm aws_iam_role.lambda_role 2>/dev/null || true
-          terraform state rm aws_iam_role_policy.lambda_dynamodb 2>/dev/null || true
-          terraform state rm aws_iam_role_policy_attachment.lambda_basic 2>/dev/null || true
-          terraform state rm aws_s3_bucket.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_versioning.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_website_configuration.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_public_access_block.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_ownership_controls.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_acl.frontend 2>/dev/null || true
-          terraform state rm aws_s3_bucket_policy.frontend 2>/dev/null || true
-          terraform state rm aws_iot_policy.sensor_policy 2>/dev/null || true
-          terraform state rm aws_dynamodb_table.wildfire_sensor_data 2>/dev/null || true
-          echo "✅ State cleanup complete"
+          ENV="${{ steps.env.outputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            terraform workspace select production || terraform workspace new production
+          else
+            terraform workspace select default || terraform workspace new default
+          fi
+          echo "✅ Using workspace: $(terraform workspace show)"
 
       - name: Terraform Plan
         env:

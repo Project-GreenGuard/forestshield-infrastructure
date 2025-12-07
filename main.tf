@@ -28,7 +28,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project     = "GreenGuard"
-      Environment = "capstone"
+      Environment = var.environment
       ManagedBy   = "Terraform"
     }
   }
@@ -41,17 +41,48 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "environment" {
+  description = "Environment name (staging or production)"
+  type        = string
+  default     = "production"
+
+  validation {
+    condition     = contains(["staging", "production"], var.environment)
+    error_message = "Environment must be either 'staging' or 'production'."
+  }
+}
+
+variable "resource_prefix" {
+  description = "Prefix for resource names"
+  type        = string
+  default     = "forestshield"
+}
+
+# Local values for environment-specific naming
+locals {
+  env_suffix = var.environment == "production" ? "" : "-${var.environment}"
+  table_name = "WildfireSensorData${local.env_suffix}"
+}
+
 # Outputs
+output "environment" {
+  description = "Current environment"
+  value       = var.environment
+}
+
 output "dynamodb_table_name" {
-  value = aws_dynamodb_table.wildfire_sensor_data.name
+  description = "DynamoDB table name"
+  value       = aws_dynamodb_table.wildfire_sensor_data.name
 }
 
 output "lambda_processing_function" {
-  value = aws_lambda_function.process_sensor_data.function_name
+  description = "Lambda function name for sensor processing"
+  value       = aws_lambda_function.process_sensor_data.function_name
 }
 
 output "lambda_api_function" {
-  value = aws_lambda_function.api_handler.function_name
+  description = "Lambda function name for API handler"
+  value       = aws_lambda_function.api_handler.function_name
 }
 
 data "aws_iot_endpoint" "wildfire" {

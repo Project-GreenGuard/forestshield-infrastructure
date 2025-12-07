@@ -1,10 +1,10 @@
 # DynamoDB table for storing sensor data
 
 resource "aws_dynamodb_table" "wildfire_sensor_data" {
-  name           = "WildfireSensorData"
-  billing_mode   = "PAY_PER_REQUEST"  # On-demand pricing (cost-effective for low traffic)
-  hash_key       = "deviceId"
-  range_key      = "timestamp"
+  name         = local.table_name
+  billing_mode = "PAY_PER_REQUEST" # On-demand pricing (cost-effective for low traffic)
+  hash_key     = "deviceId"
+  range_key    = "timestamp"
 
   attribute {
     name = "deviceId"

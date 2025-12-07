@@ -2,18 +2,18 @@
 # Creates IoT Core thing, certificate, and policy for ESP32 devices
 
 resource "aws_iot_thing" "wildfire_sensor" {
-  name = "esp32-wildfire-sensor-${count.index + 1}"
-  count = 1  # Adjust count for multiple sensors
+  name  = "esp32-wildfire-sensor-${count.index + 1}"
+  count = 1 # Adjust count for multiple sensors
 
   attributes = {
-    Type = "WildfireSensor"
+    Type  = "WildfireSensor"
     Model = "ESP32-DHT11"
   }
 }
 
 # IoT Policy - allows devices to connect and publish
 resource "aws_iot_policy" "sensor_policy" {
-  name = "WildfireSensorPolicy"
+  name = "WildfireSensorPolicy${local.env_suffix}"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -36,7 +36,7 @@ resource "aws_iot_policy" "sensor_policy" {
 
 # IoT Rule - triggers Lambda when sensor data is received
 resource "aws_iot_topic_rule" "sensor_data_rule" {
-  name        = "wildfire_sensor_data_rule"
+  name        = "wildfire_sensor_data_rule${replace(local.env_suffix, "-", "_")}"
   description = "Route sensor data to Lambda for processing"
   enabled     = true
   sql         = "SELECT * FROM 'wildfire/sensors/+'"

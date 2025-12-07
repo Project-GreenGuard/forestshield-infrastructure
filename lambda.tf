@@ -2,13 +2,13 @@
 
 # Lambda function for processing sensor data from IoT Core
 resource "aws_lambda_function" "process_sensor_data" {
-  filename         = "${path.module}/lambda-processing.zip"
-  function_name    = "wildfire-process-sensor-data"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "process_sensor_data.lambda_handler"
-  runtime         = "python3.11"
-  timeout         = 30
-  memory_size     = 256
+  filename      = "${path.module}/lambda-processing.zip"
+  function_name = "wildfire-process-sensor-data${local.env_suffix}"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "process_sensor_data.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 30
+  memory_size   = 256
 
   source_code_hash = filebase64sha256("${path.module}/lambda-processing.zip")
 
@@ -21,13 +21,13 @@ resource "aws_lambda_function" "process_sensor_data" {
 
 # Lambda function for API Gateway endpoints
 resource "aws_lambda_function" "api_handler" {
-  filename         = "${path.module}/api-gateway-lambda.zip"
-  function_name    = "wildfire-api-handler"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "api_handler.lambda_handler"
-  runtime         = "python3.11"
-  timeout         = 30
-  memory_size     = 256
+  filename      = "${path.module}/api-gateway-lambda.zip"
+  function_name = "wildfire-api-handler${local.env_suffix}"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "api_handler.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 30
+  memory_size   = 256
 
   source_code_hash = filebase64sha256("${path.module}/api-gateway-lambda.zip")
 

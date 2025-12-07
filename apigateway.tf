@@ -1,7 +1,7 @@
 # API Gateway for dashboard endpoints
 
 resource "aws_api_gateway_rest_api" "wildfire_api" {
-  name        = "wildfire-api"
+  name        = "wildfire-api${local.env_suffix}"
   description = "API Gateway for GreenGuard Wildfire Response System"
 
   endpoint_configuration {
@@ -111,12 +111,12 @@ resource "aws_api_gateway_deployment" "wildfire_api" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.wildfire_api.id
-  stage_name  = "prod"
+  stage_name  = var.environment == "production" ? "prod" : var.environment
 }
 
 # Output API endpoint
 output "api_endpoint" {
-  value = "${aws_api_gateway_deployment.wildfire_api.invoke_url}/api"
+  value       = "${aws_api_gateway_deployment.wildfire_api.invoke_url}/api"
   description = "Base API endpoint URL (includes /api prefix)"
 }
 

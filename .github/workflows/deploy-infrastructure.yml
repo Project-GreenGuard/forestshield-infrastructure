@@ -44,11 +44,16 @@ jobs:
       - name: Determine Environment
         id: env
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.event.inputs.environment }}" == "production" ]; then
+          # Check if environment was explicitly set via workflow_dispatch
+          if [ "${{ github.event.inputs.environment }}" != "" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          # Default: main = production, develop = staging
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
           else
             echo "environment=staging" >> $GITHUB_OUTPUT
           fi
+          echo "Deploying to: $(cat $GITHUB_OUTPUT | grep environment | cut -d'=' -f2)"
 
       - name: Clean State for Staging (if needed)
         if: steps.env.outputs.environment == 'staging'
@@ -67,16 +72,25 @@ jobs:
           terraform state rm aws_s3_bucket_acl.frontend 2>/dev/null || true
           terraform state rm aws_s3_bucket_policy.frontend 2>/dev/null || true
           terraform state rm aws_iot_policy.sensor_policy 2>/dev/null || true
+          terraform state rm aws_dynamodb_table.wildfire_sensor_data 2>/dev/null || true
+          echo "✅ State cleanup complete"
 
       - name: Terraform Plan
+        env:
+          TF_VAR_environment: ${{ steps.env.outputs.environment }}
         run: |
+          echo "🔍 Planning deployment for environment: ${{ steps.env.outputs.environment }}"
           terraform plan \
             -var="environment=${{ steps.env.outputs.environment }}" \
             -out=tfplan \
             -no-color
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        env:
+          TF_VAR_environment: ${{ steps.env.outputs.environment }}
+        run: |
+          echo "🚀 Applying deployment for environment: ${{ steps.env.outputs.environment }}"
+          terraform apply -auto-approve tfplan
 
       - name: Get Terraform Outputs
         id: outputs

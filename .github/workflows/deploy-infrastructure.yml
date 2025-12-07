@@ -65,6 +65,45 @@ jobs:
           fi
           echo "✅ Using workspace: $(terraform workspace show)"
 
+      - name: Import Existing Production Resources (if needed)
+        if: steps.env.outputs.environment == 'production'
+        continue-on-error: true
+        run: |
+          echo "📥 Checking and importing existing production resources..."
+          set +e  # Don't exit on error
+
+          # Check if resources exist in state, if not, import them
+          if ! terraform state show aws_dynamodb_table.wildfire_sensor_data >/dev/null 2>&1; then
+            echo "  Importing DynamoDB table..."
+            terraform import -var="environment=production" aws_dynamodb_table.wildfire_sensor_data WildfireSensorData 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  DynamoDB table already in state"
+          fi
+
+          if ! terraform state show aws_s3_bucket.frontend >/dev/null 2>&1; then
+            echo "  Importing S3 bucket..."
+            terraform import -var="environment=production" aws_s3_bucket.frontend forestshield-frontend-466650003123 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  S3 bucket already in state"
+          fi
+
+          if ! terraform state show aws_iam_role.lambda_role >/dev/null 2>&1; then
+            echo "  Importing IAM role..."
+            terraform import -var="environment=production" aws_iam_role.lambda_role wildfire-lambda-role 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  IAM role already in state"
+          fi
+
+          if ! terraform state show aws_iot_policy.sensor_policy >/dev/null 2>&1; then
+            echo "  Importing IoT policy..."
+            terraform import -var="environment=production" aws_iot_policy.sensor_policy WildfireSensorPolicy 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  IoT policy already in state"
+          fi
+
+          set -e  # Re-enable exit on error
+          echo "✅ Import check complete"
+
       - name: Terraform Plan
         env:
           TF_VAR_environment: ${{ steps.env.outputs.environment }}

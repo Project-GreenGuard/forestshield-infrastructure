@@ -65,6 +65,27 @@ jobs:
           fi
           echo "✅ Using workspace: $(terraform workspace show)"
 
+      - name: Create Placeholder Lambda Zip Files (if needed)
+        run: |
+          echo "📦 Creating placeholder Lambda zip files if they don't exist..."
+          # Create minimal placeholder zip files for Lambda functions
+          # The backend workflow will update these with actual code later
+          if [ ! -f lambda-processing.zip ]; then
+            echo "Creating placeholder lambda-processing.zip..."
+            echo 'def lambda_handler(event, context):' > process_sensor_data.py
+            echo '    return {"statusCode": 200, "body": "placeholder"}' >> process_sensor_data.py
+            zip lambda-processing.zip process_sensor_data.py
+            rm process_sensor_data.py
+          fi
+          if [ ! -f api-gateway-lambda.zip ]; then
+            echo "Creating placeholder api-gateway-lambda.zip..."
+            echo 'def lambda_handler(event, context):' > api_handler.py
+            echo '    return {"statusCode": 200, "body": "placeholder"}' >> api_handler.py
+            zip api-gateway-lambda.zip api_handler.py
+            rm api_handler.py
+          fi
+          echo "✅ Lambda zip files ready"
+
       - name: Import Existing Production Resources (if needed)
         if: steps.env.outputs.environment == 'production'
         continue-on-error: true

@@ -86,40 +86,72 @@ jobs:
           fi
           echo "✅ Lambda zip files ready"
 
-      - name: Import Existing Production Resources (if needed)
-        if: steps.env.outputs.environment == 'production'
+      - name: Import Existing Resources (if needed)
         continue-on-error: true
         run: |
-          echo "📥 Checking and importing existing production resources..."
+          ENV="${{ steps.env.outputs.environment }}"
+          echo "📥 Checking and importing existing $ENV resources..."
           set +e  # Don't exit on error
+
+          # Determine resource names based on environment
+          if [ "$ENV" == "staging" ]; then
+            DYNAMODB_NAME="WildfireSensorData-staging"
+            S3_BUCKET="forestshield-frontend-staging-466650003123"
+            IAM_ROLE="wildfire-lambda-role-staging"
+            IOT_POLICY="WildfireSensorPolicy-staging"
+            LAMBDA_PROCESSING="wildfire-process-sensor-data-staging"
+            LAMBDA_API="wildfire-api-handler-staging"
+          else
+            DYNAMODB_NAME="WildfireSensorData"
+            S3_BUCKET="forestshield-frontend-466650003123"
+            IAM_ROLE="wildfire-lambda-role"
+            IOT_POLICY="WildfireSensorPolicy"
+            LAMBDA_PROCESSING="wildfire-process-sensor-data"
+            LAMBDA_API="wildfire-api-handler"
+          fi
 
           # Check if resources exist in state, if not, import them
           if ! terraform state show aws_dynamodb_table.wildfire_sensor_data >/dev/null 2>&1; then
-            echo "  Importing DynamoDB table..."
-            terraform import -var="environment=production" aws_dynamodb_table.wildfire_sensor_data WildfireSensorData 2>&1 | grep -v "Error\|already managed" || true
+            echo "  Importing DynamoDB table: $DYNAMODB_NAME"
+            terraform import -var="environment=$ENV" aws_dynamodb_table.wildfire_sensor_data "$DYNAMODB_NAME" 2>&1 | grep -v "Error\|already managed" || true
           else
             echo "  DynamoDB table already in state"
           fi
 
           if ! terraform state show aws_s3_bucket.frontend >/dev/null 2>&1; then
-            echo "  Importing S3 bucket..."
-            terraform import -var="environment=production" aws_s3_bucket.frontend forestshield-frontend-466650003123 2>&1 | grep -v "Error\|already managed" || true
+            echo "  Importing S3 bucket: $S3_BUCKET"
+            terraform import -var="environment=$ENV" aws_s3_bucket.frontend "$S3_BUCKET" 2>&1 | grep -v "Error\|already managed" || true
           else
             echo "  S3 bucket already in state"
           fi
 
           if ! terraform state show aws_iam_role.lambda_role >/dev/null 2>&1; then
-            echo "  Importing IAM role..."
-            terraform import -var="environment=production" aws_iam_role.lambda_role wildfire-lambda-role 2>&1 | grep -v "Error\|already managed" || true
+            echo "  Importing IAM role: $IAM_ROLE"
+            terraform import -var="environment=$ENV" aws_iam_role.lambda_role "$IAM_ROLE" 2>&1 | grep -v "Error\|already managed" || true
           else
             echo "  IAM role already in state"
           fi
 
           if ! terraform state show aws_iot_policy.sensor_policy >/dev/null 2>&1; then
-            echo "  Importing IoT policy..."
-            terraform import -var="environment=production" aws_iot_policy.sensor_policy WildfireSensorPolicy 2>&1 | grep -v "Error\|already managed" || true
+            echo "  Importing IoT policy: $IOT_POLICY"
+            terraform import -var="environment=$ENV" aws_iot_policy.sensor_policy "$IOT_POLICY" 2>&1 | grep -v "Error\|already managed" || true
           else
             echo "  IoT policy already in state"
+          fi
+
+          # Import Lambda functions if they exist
+          if ! terraform state show aws_lambda_function.process_sensor_data >/dev/null 2>&1; then
+            echo "  Importing processing Lambda: $LAMBDA_PROCESSING"
+            terraform import -var="environment=$ENV" aws_lambda_function.process_sensor_data "$LAMBDA_PROCESSING" 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  Processing Lambda already in state"
+          fi
+
+          if ! terraform state show aws_lambda_function.api_handler >/dev/null 2>&1; then
+            echo "  Importing API handler Lambda: $LAMBDA_API"
+            terraform import -var="environment=$ENV" aws_lambda_function.api_handler "$LAMBDA_API" 2>&1 | grep -v "Error\|already managed" || true
+          else
+            echo "  API handler Lambda already in state"
           fi
 
           set -e  # Re-enable exit on error

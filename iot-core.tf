@@ -1,9 +1,16 @@
 # AWS IoT Core configuration
 # Creates IoT Core thing, certificate, and policy for ESP32 devices
+# 
+# Note: This creates 3 IoT Things. Each device needs its own certificate/key pair.
+# Certificates must be created manually in AWS IoT Core Console for each thing:
+# - esp32-wildfire-sensor-1
+# - esp32-wildfire-sensor-2
+# - esp32-wildfire-sensor-3
+# Each certificate must be attached to the corresponding thing and the policy.
 
 resource "aws_iot_thing" "wildfire_sensor" {
   name  = "esp32-wildfire-sensor-${count.index + 1}"
-  count = 1 # Adjust count for multiple sensors
+  count = 3 # Total of 3 sensors
 
   attributes = {
     Type  = "WildfireSensor"
@@ -26,9 +33,7 @@ resource "aws_iot_policy" "sensor_policy" {
           "iot:Subscribe",
           "iot:Receive"
         ]
-        Resource = [
-          "arn:aws:iot:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
-        ]
+        Resource = "arn:aws:iot:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
       }
     ]
   })
